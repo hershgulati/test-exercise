@@ -27,7 +27,7 @@ flowVars.qpCountry= message.inboundProperties.'http.query.params'.country;]]></e
 ---
 {
 	ns0#GetWeather: {
-		ns0#CityName: inboundProperties."http.query.params".city as :number,
+		ns0#CityName: inboundProperties."http.query.params".city,
 		ns0#CountryName: inboundProperties."http.query.params".country
 	}
 }]]></dw:set-payload>
