@@ -10,7 +10,7 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd">
 	<context:property-placeholder
-		location="properties/globalweather-${mule.envt}.properties" />
+		location="properties/globalweather-${mule.env}.properties" />
 	<http:listener-config name="weather-api-httpListenerConfig"
 		host="${http.host}" port="${http.port}" doc:name="HTTP Listener Configuration"
 		basePath="/v1" />
