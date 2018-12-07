@@ -30,7 +30,7 @@ http://www.mulesoft.org/schema/mule/xml http://www.mulesoft.org/schema/mule/xml/
 		<logger
 			message="#[flowVars.LogMsg + &quot;\nRequest Message (Transformed): \n&quot; + payload]"
 			level="INFO" doc:name="Log Transform Request Message" />
-        <until-successful maxRetries="5"  doc:name="Retry 5 times" >
+        <until-successful maxRetries="5"  doc:name="Retry 5 times" synchronous="true">
             <ws:consumer config-ref="WS_Consumer_Cities" operation="GetCitiesByCountry" doc:name="Invoke Global Weather Call"/>
         </until-successful>
 		<logger
