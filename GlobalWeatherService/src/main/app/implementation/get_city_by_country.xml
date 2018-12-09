@@ -78,8 +78,7 @@ payload=payload.replaceAll("&amp\\;gt\\;", ">");]]></expression-component>
 ---
 { 
 	cities: payload.NewDataSet.*Table.City,
-  count: sizeOf-payload.NewDataSet.*Table.City
-  
+  	count: sizeOf payload.NewDataSet.*Table.City
 }
 ]]></dw:set-payload>
 		</dw:transform-message>
