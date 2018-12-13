@@ -22,14 +22,17 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 			path="/console/*" doc:name="HTTP" />
 		<apikit:console config-ref="weather-api-config"
 			doc:name="APIkit Console" />
+        <exception-strategy ref="weather-api-apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
 	</flow>
 	<flow name="get:/weather:weather-api-config">
 		<flow-ref name="sf_commonFlowLogRequest" doc:name="Log Request" />
 		<flow-ref name="sf_get_weather_request" doc:name="Get Weather Results" />
+        <exception-strategy ref="global-exception-handler" doc:name="Reference Exception Strategy"/>
 	</flow>
 	<flow name="get:/city:weather-api-config">
 		<flow-ref name="sf_commonFlowLogRequest" doc:name="Log Request" />
 		<flow-ref name="sf_get_cityFlow_request" doc:name="Get City Results" />
+        <exception-strategy ref="global-exception-handler" doc:name="Reference Exception Strategy"/>
 	</flow>
 	<apikit:mapping-exception-strategy
 		name="weather-api-apiKitGlobalExceptionMapping">
