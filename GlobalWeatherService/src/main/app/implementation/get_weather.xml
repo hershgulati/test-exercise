@@ -35,8 +35,10 @@ flowVars.qpCountry= message.inboundProperties.'http.query.params'.country;]]></e
 		<logger
 			message="#[flowVars.LogMsg + &quot;\nRequest Message (Transformed): \n&quot; + payload]"
 			level="INFO" doc:name="Log Transform Request Message" />
-		<ws:consumer config-ref="WS_Consumer_Weather" operation="GetWeather"
-			doc:name="Invoke Global Weather Call" />
+        <until-successful maxRetries="5" synchronous="true" doc:name="Until Successful">
+            <ws:consumer config-ref="WS_Consumer_Weather" operation="GetWeather" doc:name="Invoke Global Weather Call"/>
+        </until-successful>
+
 
 		<logger
 			message="#[flowVars.LogMsg + &quot;\nResponse Message (RAW): \n&quot;+ message.payloadAs(java.lang.String)]"
