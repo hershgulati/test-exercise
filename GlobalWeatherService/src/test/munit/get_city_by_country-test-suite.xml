@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:mock="http://www.mulesoft.org/schema/mule/mock" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:mock="http://www.mulesoft.org/schema/mule/mock" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/mock http://www.mulesoft.org/schema/mule/mock/current/mule-mock.xsd">
+http://www.mulesoft.org/schema/mule/mock http://www.mulesoft.org/schema/mule/mock/current/mule-mock.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
     <munit:config name="munit" doc:name="MUnit configuration"/>
     <spring:beans>
         <spring:import resource="classpath:implementation/get_city_by_country.xml"/>
         <spring:import resource="classpath:global/global.xml"/>
         <spring:import resource="classpath:common/common.xml"/>
     </spring:beans>
-    <munit:test name="get_city_by_country-test-suite-sf_get_cityFlow_requestTest" description="Test">
+    <munit:test name="get_city_by_country-test-suite-sf_get_cityFlow_request-Test" description="Test">
         <mock:when messageProcessor=".*:.*" doc:name="Mock Webservice">
             <mock:with-attributes>
                 <mock:with-attribute name="doc:name" whereValue="#['Invoke Global Weather Call']"/>
             </mock:with-attributes>
-            <mock:then-return payload="#[getResource('sample_data/GetCitiesByCountryResponse_1.xml').asString]"/>
+            <mock:then-return payload="#[getResource('sample_data/GetCitiesByCountryResponse_1.xml').asString()]"/>
         </mock:when>
         <mock:when messageProcessor=".*:.*" doc:name="Mock Flow">
             <mock:with-attributes>
@@ -25,9 +26,52 @@ http://www.mulesoft.org/schema/mule/mock http://www.mulesoft.org/schema/mule/moc
         </mock:when>
         <munit:set payload="#[]" doc:name="Set Message">
             <munit:inbound-properties>
-                <munit:inbound-property key="'http.query.params'.country" value="Australia"/>
+                <munit:inbound-property key="http.query.params" value="#[['country':'Australia']]"/>
             </munit:inbound-properties>
         </munit:set>
         <flow-ref name="sf_get_cityFlow_request" doc:name="Flow-ref to sf_get_cityFlow_request"/>
+        <mock:verify-call messageProcessor="mule:sub-flow" times="1" doc:name="Verify Call">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('sf_get_cityFlow_response')]"/>
+            </mock:with-attributes>
+        </mock:verify-call>
+    </munit:test>
+    <munit:test name="get_city_by_country-test-suite-sf_get_cityFlow_request_exception-Test" description="Test">
+        <mock:when messageProcessor=".*:.*" doc:name="Mock Webservice">
+            <mock:with-attributes>
+                <mock:with-attribute name="doc:name" whereValue="#['Invoke Global Weather Call']"/>
+            </mock:with-attributes>
+            <mock:then-return payload="#['']"/>
+        </mock:when>
+        <mock:when messageProcessor=".*:.*" doc:name="Mock Flow">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('sf_commonBusinessException')]"/>
+            </mock:with-attributes>
+            <mock:then-return payload="#['Failure']"/>
+        </mock:when>
+        <munit:set payload="#[]" doc:name="Set Message">
+            <munit:inbound-properties>
+                <munit:inbound-property key="http.query.params" value="#[['country':'Australia']]"/>
+            </munit:inbound-properties>
+        </munit:set>
+        <flow-ref name="sf_get_cityFlow_request" doc:name="Flow-ref to sf_get_cityFlow_request"/>
+        <mock:verify-call messageProcessor="mule:sub-flow" times="1" doc:name="Verify Call">
+            <mock:with-attributes>
+                <mock:with-attribute name="name" whereValue="#[matchContains('sf_commonBusinessException')]"/>
+            </mock:with-attributes>
+        </mock:verify-call>
+        <munit:assert-on-equals message="Incorrect Status Code: Expected 'No Data Found' but received #[flowVars.statusCode]" expectedValue="#['No Data Found']" actualValue="#[flowVars.statusCode]" doc:name="Assert Status Code"/>
+        <munit:assert-on-equals message="Incorrect Exception Message: Expected 'No Cities Found.' but received #[flowVars.exceptionMsg]" expectedValue="#['No Cities Found.']" actualValue="#[flowVars.exceptionMsg]" doc:name="Assert Exception Message"/>
+    </munit:test>
+    <munit:test name="get_city_by_country-test-suite-sf_get_cityFlow_responseTest" description="Test">
+        <set-payload value="#[getResource('sample_data/GetCitiesByCountryResponse_1.xml').asString()]" mimeType="application/xml" doc:name="Set Payload"/>
+        <flow-ref name="sf_get_cityFlow_response" doc:name="Flow-ref to sf_get_cityFlow_response"/>
+        <dw:transform-message doc:name="Parse JSON">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload]]></dw:set-payload>
+        </dw:transform-message>
+        <munit:assert-on-equals expectedValue="#[66]" actualValue="#[payload.count]" doc:name="Assert Count" message="Incorrect Count: Expected value was 66 but recieved #[payload.count]"/>
     </munit:test>
 </mule>
